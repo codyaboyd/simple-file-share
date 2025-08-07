@@ -1,0 +1,104 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Server</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <style>
+        body {
+            background-color: #1a1a2e;
+            color: #e0e0e0;
+        }
+        .container {
+            border: 1px solid #4e4e50;
+            background-color: #16213e;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 50px;
+        }
+        .media-grid-item {
+            margin-bottom: 15px;
+        }
+        .media-grid-item img {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary {
+            background-color: #0f3460;
+            border-color: #0f3460;
+        }
+        .btn-primary:hover {
+            background-color: #185abd;
+            border-color: #185abd;
+        }
+        .btn-secondary {
+            background-color: #e94560;
+            border-color: #e94560;
+        }
+        .btn-secondary:hover {
+            background-color: #f05945;
+            border-color: #f05945;
+        }
+    </style>
+</head>
+<body>
+     <div class="container">
+        <h1>Media Share</h1>
+        <form id="uploadForm" enctype="multipart/form-data">
+            <input type="file" name="files" multiple>
+            <button type="submit" class="btn btn-primary float-end">Upload</button>
+        </form>
+        <button id="downloadAllBtn" class="btn btn-secondary mt-3">Download All</button>
+        <hr>
+        <div id="mediaGrid" class="row mt-4"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch('/upload', { method: 'POST', body: formData })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    loadMedia();
+                })
+                .catch(error => console.error('Error:', error));
+        });
+
+	    document.getElementById('downloadAllBtn').addEventListener('click', function() {
+        window.location.href = '/download-all';
+    });
+		
+
+        function loadMedia() {
+            fetch('/files')
+                .then(response => response.json())
+                .then(files => {
+                    const grid = document.getElementById('mediaGrid');
+                    grid.innerHTML = '';
+                    files.forEach(file => {
+                        let mediaElement;
+
+                        if (file.match(/\.(jpeg|jpg|gif|png)$/)) { // Check if file is an image
+                            mediaElement = `<div class="col-md-4 mb-3">
+                                                <img src="/uploads/${file}" class="img-fluid">
+                                            </div>`;
+                        } else if (file.match(/\.(mp4|webm|ogg|avi|mkv)$/)) { // Check if file is a video
+                            mediaElement = `<div class="col-md-4 mb-3">
+                                                <img src="https://cdn-icons-png.flaticon.com/512/8326/8326228.png" class="img-fluid"
+                                                     onclick="window.open('/uploads/${file}', '_blank')">
+                                            </div>`;
+                        }
+
+                        grid.innerHTML += mediaElement;
+                    });
+                });
+        }
+
+        loadMedia();
+    </script>
+</body>
+</html>
